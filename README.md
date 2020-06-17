@@ -2,6 +2,8 @@
 
 Intern Starter Project for Google 2020 Summer Internship working with OpenTelemetry.
 
+Visit: https://finder-dot-chessegg.wl.r.appspot.com to try out the services.
+
 This project consists of three services: 
 -The FoodFinder service allows a user to specify an ingredient they need, 
 and consults with other services to try to find vendors with that for the user. 
