@@ -1,4 +1,9 @@
+/*
+The Finder service will call the Supplier service with an ingredient query, and Supplier will return a list of vendors
+that are supplying the ingredient. It also runs as a standalone service. To deploy, copy this class over to the
+GoogleStarterProjectApplication class, change service to "supplier" in the app.yaml file, and deploy to app engine.
 
+ */
 package com.example.GoogleStarterProject;
 
 import org.springframework.boot.SpringApplication;

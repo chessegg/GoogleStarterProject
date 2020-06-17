@@ -1,11 +1,10 @@
 /*
-NOTE: this class is basically just a deployment class. I was having trouble deploying via multiple yaml files and trying
-to match the correct java file to the correct yaml file, so what I ended up doing is just having this one class and one
-yaml file. When I want to deploy Finder, I just copy and paste the Finder code over to this class and change the service
-name in the app.yaml file to "finder" and deploy in terminal. When I want to deploy Supplier, I just copy and paste that
-class in to here to deploy via the same process. It's admittedly just a lazy workaround, but it works so whatever.
+The user will  supply the Finder service with an ingredient in the Finder URL, and Finder will query both the Supplier
+and Vendor services for relevant information regarding the ingredient. To deploy, copy this class over to the
+GoogleStarterProjectApplication class, change service to "finder" in the app.yaml file, and deploy to app engine.
 
  */
+
 
 package com.example.GoogleStarterProject;
 
