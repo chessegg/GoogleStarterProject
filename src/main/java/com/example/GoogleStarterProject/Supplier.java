@@ -6,6 +6,14 @@ GoogleStarterProjectApplication class, change service to "supplier" in the app.y
  */
 package com.example.GoogleStarterProject;
 
+import io.opencensus.common.Scope;
+import io.opencensus.exporter.trace.stackdriver.StackdriverTraceConfiguration;
+import io.opencensus.exporter.trace.stackdriver.StackdriverTraceExporter;
+import io.opencensus.trace.Span;
+import io.opencensus.trace.Tracer;
+import io.opencensus.trace.Tracing;
+import io.opencensus.trace.config.TraceConfig;
+import io.opencensus.trace.samplers.Samplers;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +30,7 @@ import java.util.HashMap;
 @WebServlet(name = "supplier", description = "takes in ingredient, sends back vendor list", urlPatterns = "/ingredient")
 public class Supplier extends SpringBootServletInitializer {
     private  static HashMap<String, String[]> ingredientVendors = new HashMap<>();
+    private static final Tracer tracer = Tracing.getTracer();
 
     public Supplier(){
         ingredientVendors.put("sugar", new String[] {"Walmart", "Target", "Costco"});
@@ -40,8 +49,11 @@ public class Supplier extends SpringBootServletInitializer {
 
     @GetMapping("/{name}")
     String getIngredient(@PathVariable String name) {
-        System.out.print("THE INGREDIENT IS " + name + " ");
-        return Arrays.toString(getVendorList(name, ingredientVendors));
+        try (Scope ss = tracer.spanBuilder("SupplierGetMapping").setSampler(Samplers.alwaysSample()).startScopedSpan()) {
+            System.out.print("THE INGREDIENT IS " + name + " ");
+            return Arrays.toString(getVendorList(name, ingredientVendors));
+        }
+
     }
 
 
@@ -60,15 +72,36 @@ public class Supplier extends SpringBootServletInitializer {
 
     //Returns a String[] containing the list of vendors that sell the ingredient that was queried for
     public static String[] getVendorList(String ingredient, HashMap<String, String[]> vendors){
-        if (vendors.containsKey(ingredient)) {
-            return vendors.get(ingredient);
-        }
-        else {
-            return new String[] {"No vendor matches found"};
+        try (Scope ss = tracer.spanBuilder("getVendorList").setSampler(Samplers.alwaysSample()).startScopedSpan()) {
+            Span span = tracer.getCurrentSpan();
+            span.addAnnotation("Testing span annotation method");
+            if (vendors.containsKey(ingredient)) {
+                return vendors.get(ingredient);
+            }
+            else {
+                return new String[] {"No vendor matches found"};
+            }
         }
     }
 
+    private static void setupOpenCensusAndStackdriverExporter() throws IOException {
+        String gcpProjectId = "chessegg";
+        // For demo purposes, always sample
+        TraceConfig traceConfig = Tracing.getTraceConfig();
+        traceConfig.updateActiveTraceParams(traceConfig.getActiveTraceParams().toBuilder().setSampler(Samplers.alwaysSample()).build());
+
+        StackdriverTraceExporter.createAndRegister(StackdriverTraceConfiguration.builder().setProjectId(gcpProjectId).build());
+        //String gcpProjectID = System.getenv().get(key);
+        //StackdriverTraceExporter.createAndRegister(StackdriverTraceConfiguration.builder().setProjectId(gcpProjectId).build());
+    }
+
     public static void main(String[] args) throws IOException {
+        try {
+            setupOpenCensusAndStackdriverExporter();
+        } catch (IOException e) {
+            System.err.println("Failed to create and register OpenCensus Stackdriver Trace exporter "+ e);
+            return;
+        }
         System.out.print("SUPPLIER TEST ");
         SpringApplication.run(GoogleStarterProjectApplication.class, args);
         System.out.print("SPRING RUNNING ");
